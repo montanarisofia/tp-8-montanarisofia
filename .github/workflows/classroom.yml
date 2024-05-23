@@ -1,0 +1,40 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Test Sets
+      id: test-sets
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test Sets
+        setup-command: pip install pytest
+        command: pytest tp8_sets_test.py
+        timeout: 10
+        max-score: 1
+    - name: Test Dicts
+      id: test-dicts
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Test Dicts
+        setup-command: pip install pytest
+        command: pytest tp8_dicts_test.py
+        timeout: 10
+        max-score: 1
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        TEST-SETS_RESULTS: "${{steps.test-sets.outputs.result}}"
+        TEST-DICTS_RESULTS: "${{steps.test-dicts.outputs.result}}"
+      with:
+        runners: test-sets,test-dicts
